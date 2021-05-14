@@ -55,12 +55,8 @@ class VkBot:
         elif message.upper() == self._COMMANDS[2]:
             return f'Гъуэгу махуэ, {self._USERNAME}'
 
-        #Крайние меры
-        elif message.upper() == "ИДИ НАХУЙ":
-            return "маме своей такое скажешь?"
-
         else: 
-            return "могу только погоду сказать или попрощаться. \nЧтобы узнать погоду напиши 'погода'"
+            return "н656могу только погоду сказать или попрощаться. \nЧтобы узнать погоду напиши 'погода'"
 #Time
     def _get_time(self):
         request = requests.get("https://my-calend.ru/date-and-time-today")
@@ -111,7 +107,7 @@ for event in longpoll.listen():
                     vk.method('messages.send', {'user_id': event.user_id, 'message': bot.new_message(event.text), 'random_id': 0})
             else:       
                     ids.append(event.user_id)
-                    botI = VkBot(event.user_id)
+                    bot = VkBot(event.user_id)
                     print(f'For me by:{UserName} {event.user_id}', end=' ')
                     print('New message:', event.text)
-                    vk.method('messages.send', {'user_id': event.user_id, 'message': botI.new_message(event.text), 'random_id': 0})
+                    vk.method('messages.send', {'user_id': event.user_id, 'message': bot.new_message(event.text), 'random_id': 0})
