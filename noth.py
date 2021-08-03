@@ -1,6 +1,7 @@
 import vk_api
 import requests
 import subprocess
+import time
 from bs4 import BeautifulSoup
 from vk_api.longpoll import VkLongPoll, VkEventType
 token2 = "cda923ac6d6cdbf05a2ba3b791f97869fc7f237f623c07bf93935e774ae23581fb35e7a8bba37dbf7e145"
@@ -49,10 +50,11 @@ class VkBot:
         
         #Parser
         elif message.upper() == self._COMMANDS[3]:
+
              return self.pars()
 
         else: 
-            return "могу только погоду сказать или попрощаться. \nЧтобы узнать погоду напиши 'погода'"
+            return "могу только погоду сказать или попрощаться. \nЧтобы узнать погоду напиши 'погода' и город"
 
 #Weather
     def _get_weather(self, city):
@@ -65,40 +67,41 @@ class VkBot:
         min_and_maxWeath = min_and_maxWeath.replace('макс.', 'Максимум днем')
         min_and_maxWeath = min_and_maxWeath.replace('мин.', 'Минимум днем')
         currentWeather = self._clean_all_tag_from_str(b.select('.table__col.current .table__felt')[0])
-        return f'Сегодня в {city.title()}: {min_and_maxWeath} \nВ данный момент {currentWeather}'
+        return f'Сегодня в {city.title()}: {min_and_maxWeath} \nСейчас ощущается как: {currentWeather}'
 #parsing
     def pars(self):
+        start_time = time.time()
         outputSum=""
-        
+        dict={}
         cost=[]
-        f=open('HtmlCodeFileEldorado.txt', 'r+',  encoding='utf-8')
-        for iter in range(1,7):
-            
+        #f=open('HtmlCodeFileEldorado.txt', 'w',  encoding='utf-8')
+        #f=open('PhonesConstant.txt', 'w',  encoding='utf-8')
+        for iter in range(1,29):    
             print(f"\n\n______________________________Страница {iter}:______________________________")
-
             txt="curl https://www.eldorado.ru/c/smartfony/?page=%i"%iter
             if iter==1:
                 txt="curl https://www.eldorado.ru/c/smartfony/"
 
             x = subprocess.check_output(txt, shell=True)
             strHTMLCode=str(x, encoding='utf-8')
-        
+           
 
             b = BeautifulSoup(f'{strHTMLCode}','html.parser')
+            del x
 
             costAndTags = b.find_all(attrs={"data-pc": "offer_price"})
             ItemNameTags = b.find_all(attrs={"data-dy": "title"})
-            
+            del b
+
             for i in range(len(costAndTags)):
                 cost.append(self._clean_all_tag_from_str(costAndTags[i])  + " " + self._clean_all_tag_from_str(ItemNameTags[i]) )
+                #dict[str(self._clean_all_tag_from_str(ItemNameTags[i]))]=self._clean_all_tag_from_str(costAndTags[i]).replace('\xa0руб.','') по кафу было в тхт файл записать все мобилки вот и все
                 print(f'{(iter-1)*36+1+i}) '+cost[-1], end="\n\n")
-   
-                
-        #f.write(strHTMLCode)
+        
         #f.close()
-        print(cost)
-        return "че то да произошло"
-
+        
+        return str(time.time() - start_time)
+#constructor
     def __init__(self, user_id):
     
         print("Создан объект бота!")
@@ -115,19 +118,20 @@ class VkBot:
 print("Server started")
 
 ids=[]
-
+myUsers=[]
 for event in longpoll.listen():
 
     if event.type == VkEventType.MESSAGE_NEW:
         if event.to_me:
             UserName=vk.method('users.get',{'user_ids':event.user_id})[0]['first_name']+' '+vk.method('users.get',{'user_ids':event.user_id})[0]['last_name']
             if ids.count(event.user_id)==1:
-                print(f'For me by:{UserName} id:{event.user_id}', end= ' ')
+                print(f' old user. For me by:{UserName} id:{event.user_id}', end= ' ')
                 print('| New message:', event.text)
-                vk.method('messages.send', {'user_id': event.user_id, 'message': bot.new_message(event.text), 'random_id': 0})
+                vk.method('messages.send', {'user_id': bot._USER_ID, 'message': bot.new_message(event.text), 'random_id': 0})
             else:       
                 ids.append(event.user_id)
                 bot = VkBot(event.user_id)
-                print(f'For me by:{UserName} id:{event.user_id}', end=' ')
+                myUsers.append(bot) #решил по приколу сохранять юзеров
+                print(f'new user. For me by:{UserName} id:{event.user_id}', end=' ')
                 print('| New message:', event.text)
                 vk.method('messages.send', {'user_id': event.user_id, 'message': bot.new_message(event.text), 'random_id': 0})
