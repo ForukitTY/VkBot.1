@@ -71,21 +71,43 @@ class VkBot:
 #parsing
     def pars(self):
         start_time = time.time()
-        outputSum=""
         dict={}
         cost=[]
+        headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.135 YaBrowser/21.6.3.757 Yowser/2.5 Safari/537.36'}
+        
+        for iter in range(1,29):    
+            if iter==1:
+                req=requests.get('https://www.eldorado.ru/c/smartfony/', headers=headers)
+            else:
+                req=requests.get('https://www.eldorado.ru/c/smartfony/?page=%i'%iter, headers=headers)
+            b = BeautifulSoup(req.text, "html.parser")
+            costAndTags = b.find_all(attrs={"data-pc": "offer_price"})
+            ItemNameTags = b.find_all(attrs={"data-dy": "title"})
+            
+            for xx in range(len(costAndTags)):
+                cost.append(ItemNameTags[xx].text+" "+costAndTags[xx].text)
+                #dict[ItemNameTags[xx].text] = costAndTags[xx].text
+            print(f"page {iter+1} \n")
+            
+        #print(cost)
+        print(cost[-1])
+        return str(round(time.time() - start_time , 5))
+        
         #f=open('HtmlCodeFileEldorado.txt', 'w',  encoding='utf-8')
         #f=open('PhonesConstant.txt', 'w',  encoding='utf-8')
-        for iter in range(1,29):    
+        #f=open('PhonesConstant.txt', 'w',  encoding='utf-8')
+        
+        
+        for iter in range(1,8):    
             print(f"\n\n______________________________Страница {iter}:______________________________")
+
             txt="curl https://www.eldorado.ru/c/smartfony/?page=%i"%iter
             if iter==1:
                 txt="curl https://www.eldorado.ru/c/smartfony/"
 
             x = subprocess.check_output(txt, shell=True)
             strHTMLCode=str(x, encoding='utf-8')
-           
-
+            
             b = BeautifulSoup(f'{strHTMLCode}','html.parser')
             del x
 
@@ -94,10 +116,17 @@ class VkBot:
             del b
 
             for i in range(len(costAndTags)):
-                cost.append(self._clean_all_tag_from_str(costAndTags[i])  + " " + self._clean_all_tag_from_str(ItemNameTags[i]) )
-                #dict[str(self._clean_all_tag_from_str(ItemNameTags[i]))]=self._clean_all_tag_from_str(costAndTags[i]).replace('\xa0руб.','') по кафу было в тхт файл записать все мобилки вот и все
-                print(f'{(iter-1)*36+1+i}) '+cost[-1], end="\n\n")
-        
+                cost.append(costAndTags[i].text  + " " + ItemNameTags[i].text) #faster then down line
+                #cost.append(self._clean_all_tag_from_str(costAndTags[i])  + " " + self._clean_all_tag_from_str(ItemNameTags[i]) )
+                ##dict[ItemNameTags[i].text]=costAndTags[i].text.replace('\xa0руб.','') #по кафу было в тхт файл записать все мобилки вот и все
+                #print(f'{(iter-1)*36+1+i}) '+cost[-1], end="\n\n")
+                
+        print(str(time.time() - start_time))
+        vk.method('messages.send', {'user_id': self._USER_ID, 'message': (f"Чекнул {round(len(cost)/36)} страниц за "+str(round(time.time() - start_time,5))+" секунд"), 'random_id': 0})
+        for booba in range(3):    
+            print(booba+1,end="\n")
+            time.sleep(1)
+        self.pars()
         #f.close()
         
         return str(time.time() - start_time)
