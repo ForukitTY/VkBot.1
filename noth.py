@@ -90,7 +90,7 @@ class VkBot:
             print(f"page {iter+1} \n")
             
         #print(cost)
-        print(cost[-1])
+        print(cost)
         return str(round(time.time() - start_time , 5))
         
         #f=open('HtmlCodeFileEldorado.txt', 'w',  encoding='utf-8')
